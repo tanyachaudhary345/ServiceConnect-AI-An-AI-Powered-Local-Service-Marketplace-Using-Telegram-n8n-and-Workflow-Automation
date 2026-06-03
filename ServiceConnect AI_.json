@@ -1,0 +1,409 @@
+{
+  "name": "ServiceConnect AI:",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        -96
+      ],
+      "id": "a223529e-8fb7-4ceb-9ba0-be0899556e5e",
+      "name": "Telegram Trigger",
+      "webhookId": "b5141b96-54dc-4d20-ba6e-17ff5bf1b553",
+      "credentials": {
+        "telegramApi": {
+          "id": "E7tsmXLUrzNIsgyq",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract the following information from the registration message.\n\nFields:\n- name\n- service\n- city\n- phone\n\nReturn ONLY valid JSON.\n\nExample:\n\nInput:\n/register Rahul, Plumber, Siliguri, 9876543210\n\nOutput:\n{\n\"name\":\"Rahul\",\n\"service\":\"Plumber\",\n\"city\":\"Siliguri\",\n\"phone\":\"9876543210\"\n}\n\nMessage:\n{{ $json.message.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        96,
+        48
+      ],
+      "id": "316fe988-cee6-4e17-ad0b-0d1757e5cecd",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        256
+      ],
+      "id": "73e646f9-7bb2-48e8-83dd-b52066112ac0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "grJuWcMq8SpuKW5l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "notes": "Max Tries: 3\nWait Between Tries: 1000ms"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\n\nlet text = $json.output;\n\ntext = text.replace(/```json/g, '');\ntext = text.replace(/```/g, '');\n\nconst data = JSON.parse(text);\n\nreturn [\n  {\n    json: {\n      name: data.name,\n      service: data.service,\n      city: data.city,\n      phone: data.phone\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        48
+      ],
+      "id": "9243f946-cccb-4123-84e7-a90c13ca5e9f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1k5AgFIj6X_8MiL8gnfD1UNO5hP1-JIqVtS-c4qAZXT0",
+          "mode": "list",
+          "cachedResultName": "ServiceConnectAI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1k5AgFIj6X_8MiL8gnfD1UNO5hP1-JIqVtS-c4qAZXT0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1k5AgFIj6X_8MiL8gnfD1UNO5hP1-JIqVtS-c4qAZXT0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.name }}",
+            "Service": "={{ $json.service }}",
+            "City": "={{ $json.city }}",
+            "Phone": "={{ $json.phone }}",
+            "Telegram_ID": "={{ $('Telegram Trigger').item.json.message.from.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service",
+              "displayName": "Service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Telegram_ID",
+              "displayName": "Telegram_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        48
+      ],
+      "id": "c14f3ba4-a5cb-4a67-839c-8e4733381c9e",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7D3ZLAvmdMmDsAx0",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1k5AgFIj6X_8MiL8gnfD1UNO5hP1-JIqVtS-c4qAZXT0",
+          "mode": "list",
+          "cachedResultName": "ServiceConnectAI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1k5AgFIj6X_8MiL8gnfD1UNO5hP1-JIqVtS-c4qAZXT0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1k5AgFIj6X_8MiL8gnfD1UNO5hP1-JIqVtS-c4qAZXT0/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        608,
+        -320
+      ],
+      "id": "b54f143d-83b9-41d6-9536-cfe19f6c3775",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7D3ZLAvmdMmDsAx0",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract the following information from the customer request.\n\nFields:\n- service\n- city\n\nReturn ONLY valid JSON.\n\nExamples:\n\nInput:\nNeed a plumber in Siliguri\n\nOutput:\n{\n  \"service\": \"Plumber\",\n  \"city\": \"Siliguri\"\n}\n\nInput:\nI need an electrician in Delhi\n\nOutput:\n{\n  \"service\": \"Electrician\",\n  \"city\": \"Delhi\"\n}\n\nInput:\nFind a carpenter in Kolkata\n\nOutput:\n{\n  \"service\": \"Carpenter\",\n  \"city\": \"Kolkata\"\n}\n\nCustomer Message:\n{{ $json.message.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        32,
+        -320
+      ],
+      "id": "64210b6e-80c8-468a-a867-a148feba3677",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = $json.output;\n\ntext = text.replace(/```json/g, '');\ntext = text.replace(/```/g, '');\ntext = text.trim();\n\nconst data = JSON.parse(text);\n\nreturn [{\n  json: {\n    service: data.service,\n    city: data.city\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        -320
+      ],
+      "id": "c460a20b-be41-49ce-8491-42a6cd3ff806",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        -144
+      ],
+      "id": "3a1b5b63-3592-4716-a2a5-d6ac5839e520",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "grJuWcMq8SpuKW5l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const service = $('Code in JavaScript1').first().json.service;\nconst city = $('Code in JavaScript1').first().json.city;\n\nreturn items.filter(item =>\n  item.json.Service.toLowerCase() === service.toLowerCase() &&\n  item.json.City.toLowerCase() === city.toLowerCase()\n);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        -280.8754005432129
+      ],
+      "id": "3aa0eebe-ce8e-427d-bf4b-8f7c700187dd",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Service Provider Found  Name: {{ $json.Name }} Service: {{ $json.Service }} City: {{ $json.City }} Phone: {{ $json.Phone }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        -280.8754005432129
+      ],
+      "id": "a170a1d0-fde6-4d89-9706-56d33fa7011b",
+      "name": "Send a text message",
+      "webhookId": "a0ac6bb0-aa18-46f5-9ba1-a5c3cb7cbf85",
+      "credentials": {
+        "telegramApi": {
+          "id": "E7tsmXLUrzNIsgyq",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "697f86e5-37bb-4cfb-a738-648dd8dc37fe",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9eea95056a0103a5489d036befd5ef59541159bf8fc3e8bcd16e8eaae2f97297"
+  },
+  "id": "8jQuyaVbqexWj6Js",
+  "tags": []
+}
